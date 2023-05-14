@@ -4,6 +4,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/tumbleweedd/mediasoft-intership/customer-service/pkg/model"
+	"gitlab.com/mediasoft-internship/final-task/contracts/pkg/contracts/customer"
 )
 
 type Office interface {
@@ -13,6 +14,7 @@ type Office interface {
 }
 
 type Order interface {
+	CreateOrder(order model.Order, salads, garnishes, meats, soups, drinks, desserts []*customer.OrderItem) error
 }
 
 type User interface {

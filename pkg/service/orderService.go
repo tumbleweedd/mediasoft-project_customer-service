@@ -2,54 +2,56 @@ package service
 
 import (
 	"context"
+	"github.com/google/uuid"
 	"github.com/tumbleweedd/mediasoft-intership/customer-service/clients"
 	"github.com/tumbleweedd/mediasoft-intership/customer-service/pkg/model"
+	"github.com/tumbleweedd/mediasoft-intership/customer-service/pkg/rabbitmq"
 	"github.com/tumbleweedd/mediasoft-intership/customer-service/pkg/repository"
 	"gitlab.com/mediasoft-internship/final-task/contracts/pkg/contracts/customer"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type OrderService struct {
 	orderRepository   repository.Order
 	restaurantService clients.RestaurantServiceClient
+	rabbitMQConn      *rabbitmq.RabbitMQConn
 }
 
-func NewOrderService(r repository.Order) *OrderService {
-	return &OrderService{orderRepository: r}
+func NewOrderService(r repository.Order, rabbitMQConn *rabbitmq.RabbitMQConn) *OrderService {
+	return &OrderService{
+		orderRepository: r,
+		rabbitMQConn:    rabbitMQConn,
+	}
 }
 
 func (os *OrderService) CreateOrder(ctx context.Context, request *customer.CreateOrderRequest) (*customer.CreateOrderResponse, error) {
-	order := &model.Order{
-		UserUUID:  request.UserUuid,
-		Salads:    make([]model.OrderProduct, len(request.Salads)),
-		Garnishes: make([]model.OrderProduct, len(request.Garnishes)),
-		Meats:     make([]model.OrderProduct, len(request.Meats)),
-		Soups:     make([]model.OrderProduct, len(request.Soups)),
-		Drinks:    make([]model.OrderProduct, len(request.Drinks)),
-		Desserts:  make([]model.OrderProduct, len(request.Desserts)),
+	userUUID, err := uuid.Parse(request.UserUuid)
+	if err != nil {
+		return nil, err
 	}
 
-	for i, p := range request.Salads {
-		order.Salads[i] = model.OrderProduct{Count: int(p.Count), ProductUUID: p.ProductUuid}
+	order := model.Order{
+		OrderUUID: uuid.New(),
+		UserUUID:  userUUID,
 	}
 
-	for i, p := range request.Garnishes {
-		order.Garnishes[i] = model.OrderProduct{Count: int(p.Count), ProductUUID: p.ProductUuid}
+	if err := os.orderRepository.CreateOrder(
+		order,
+		request.Salads,
+		request.Garnishes,
+		request.Meats,
+		request.Soups,
+		request.Drinks,
+		request.Desserts); err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	for i, p := range request.Meats {
-		order.Meats[i] = model.OrderProduct{Count: int(p.Count), ProductUUID: p.ProductUuid}
+	if err := os.rabbitMQConn.SendOrder(&order); err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	for i, p := range request.Soups {
-		order.Soups[i] = model.OrderProduct{Count: int(p.Count), ProductUUID: p.ProductUuid}
-	}
-
-	for i, p := range request.Drinks {
-		order.Drinks[i] = model.OrderProduct{Count: int(p.Count), ProductUUID: p.ProductUuid}
-	}
-
-	err := os.orderRepository.
-
+	return &customer.CreateOrderResponse{}, err
 }
 
 func (os *OrderService) GetActualMenu(ctx context.Context, request *customer.GetActualMenuRequest) (*customer.GetActualMenuResponse, error) {
@@ -59,10 +61,4 @@ func (os *OrderService) GetActualMenu(ctx context.Context, request *customer.Get
 	//}
 
 	return &customer.GetActualMenuResponse{}, nil
-}
-
-func formatOrder(orderItem []*customer.OrderItem, order *model.Order) {
-	for i, p := range orderItem {
-		order.Salads[i] = model.OrderProduct{Count: int(p.Count), ProductUUID: p.ProductUuid}
-	}
 }

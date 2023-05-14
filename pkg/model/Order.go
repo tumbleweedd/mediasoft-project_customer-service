@@ -1,16 +1,15 @@
 package model
 
+import "github.com/google/uuid"
+
 type Order struct {
-	UserUUID  string         `json:"user_uuid"`
-	Salads    []OrderProduct `json:"salads"`
-	Garnishes []OrderProduct `json:"garnishes"`
-	Meats     []OrderProduct `json:"meats"`
-	Soups     []OrderProduct `json:"soups"`
-	Drinks    []OrderProduct `json:"drinks"`
-	Desserts  []OrderProduct `json:"desserts"`
+	OrderUUID uuid.UUID `json:"order_uuid" db:"uuid"`
+	UserUUID  uuid.UUID `json:"user_uuid" db:"user_uuid"`
 }
 
-type OrderProduct struct {
-	Count       int    `json:"count"`
-	ProductUUID string `json:"product_uuid"`
+type OrderItem struct {
+	ID          int       `json:"id" db:"id"`
+	Count       int       `json:"count" db:"count"`
+	ProductUUID uuid.UUID `json:"product_uuid" db:"product_uuid"`
+	OrderUUID   uuid.UUID `json:"order_uuid" db:"order_uuid"`
 }

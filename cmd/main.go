@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
+	"github.com/tumbleweedd/mediasoft-intership/customer-service/pkg/rabbitmq"
 	"github.com/tumbleweedd/mediasoft-intership/customer-service/pkg/repository"
 	"github.com/tumbleweedd/mediasoft-intership/customer-service/pkg/service"
 	"gitlab.com/mediasoft-internship/final-task/contracts/pkg/contracts/customer"
@@ -40,8 +41,14 @@ func main() {
 
 	s := grpc.NewServer()
 
+	rabbitmqConn, err := rabbitmq.NewRabbitMQConn("guest", "guest", "localhost", "5672", "queue_name")
+	if err != nil {
+		log.Fatalln("Failed to rabbitMQ conn: ", err)
+	}
+	defer rabbitmqConn.Close()
+
 	repo := repository.NewRepository(db)
-	svc := service.NewService(repo)
+	svc := service.NewService(repo, rabbitmqConn)
 
 	customer.RegisterOfficeServiceServer(s, svc)
 	customer.RegisterUserServiceServer(s, svc)
