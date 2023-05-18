@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
-	"github.com/tumbleweedd/mediasoft-intership/customer-service/pkg/rabbitmq"
-	"github.com/tumbleweedd/mediasoft-intership/customer-service/pkg/repository"
+	"github.com/tumbleweedd/mediasoft-intership/customer-service/internal/repository"
+	"github.com/tumbleweedd/mediasoft-intership/customer-service/pkg/broker/kafka"
 	"gitlab.com/mediasoft-internship/final-task/contracts/pkg/contracts/customer"
 )
 
@@ -29,14 +29,15 @@ type Service struct {
 	customer.UnsafeOfficeServiceServer
 	customer.UnsafeOrderServiceServer
 	customer.UnsafeUserServiceServer
-	rabbitMQConn *rabbitmq.RabbitMQConn
+	kafkaProducer *kafka.Producer
+	Done          chan struct{}
 }
 
-func NewService(r *repository.Repository, rabbitMQConn *rabbitmq.RabbitMQConn) *Service {
+func NewService(r *repository.Repository, kafkaProducer *kafka.Producer, Done chan struct{}) *Service {
 	return &Service{
-		Office:       NewOfficeService(r.Office),
-		Order:        NewOrderService(r.Order, rabbitMQConn),
-		User:         NewUserService(r.User, r.Office),
-		rabbitMQConn: rabbitMQConn,
+		Office:        NewOfficeService(r.Office),
+		Order:         NewOrderService(r.Order, r.Office, kafkaProducer, Done),
+		User:          NewUserService(r.User, r.Office),
+		kafkaProducer: kafkaProducer,
 	}
 }

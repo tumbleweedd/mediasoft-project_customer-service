@@ -3,7 +3,7 @@ package repository
 import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
-	"github.com/tumbleweedd/mediasoft-intership/customer-service/pkg/model"
+	"github.com/tumbleweedd/mediasoft-intership/customer-service/internal/model"
 	"gitlab.com/mediasoft-internship/final-task/contracts/pkg/contracts/customer"
 )
 

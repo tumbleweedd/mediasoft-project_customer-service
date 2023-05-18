@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/streadway/amqp"
-	"github.com/tumbleweedd/mediasoft-intership/customer-service/pkg/model"
+	"github.com/tumbleweedd/mediasoft-intership/customer-service/internal/model"
 )
 
 // RabbitMQConn тип для соединения с RabbitMQ

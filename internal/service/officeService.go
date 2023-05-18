@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 	"github.com/google/uuid"
-	"github.com/tumbleweedd/mediasoft-intership/customer-service/pkg/model"
-	"github.com/tumbleweedd/mediasoft-intership/customer-service/pkg/repository"
+	"github.com/tumbleweedd/mediasoft-intership/customer-service/internal/model"
+	"github.com/tumbleweedd/mediasoft-intership/customer-service/internal/repository"
 	"gitlab.com/mediasoft-internship/final-task/contracts/pkg/contracts/customer"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
