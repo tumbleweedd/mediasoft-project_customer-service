@@ -6,21 +6,23 @@ import (
 	"github.com/tumbleweedd/mediasoft-intership/customer-service/clients"
 	"github.com/tumbleweedd/mediasoft-intership/customer-service/internal/model"
 	"github.com/tumbleweedd/mediasoft-intership/customer-service/internal/repository"
-	"github.com/tumbleweedd/mediasoft-intership/customer-service/pkg/broker/kafka"
+	"github.com/tumbleweedd/mediasoft-intership/customer-service/pkg/broker/kafka/producer"
 	"gitlab.com/mediasoft-internship/final-task/contracts/pkg/contracts/customer"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
+const ordersTopic = "orders"
+
 type OrderService struct {
 	orderRepository   repository.Order
 	officeRepository  repository.Office
 	restaurantService clients.RestaurantServiceClient
-	kafkaProducer     *kafka.Producer
+	kafkaProducer     *producer.Producer
 	Done              chan struct{}
 }
 
-func NewOrderService(orderRepo repository.Order, officeRepo repository.Office, kafkaProducer *kafka.Producer, Done chan struct{}) *OrderService {
+func NewOrderService(orderRepo repository.Order, officeRepo repository.Office, kafkaProducer *producer.Producer, Done chan struct{}) *OrderService {
 	return &OrderService{
 		orderRepository:  orderRepo,
 		officeRepository: officeRepo,
@@ -58,16 +60,12 @@ func (os *OrderService) CreateOrder(ctx context.Context, request *customer.Creat
 
 	orderByOffice, err := buildOrderByOffice(&order, &office, request)
 
-	go os.kafkaProducer.StartProduce(os.Done, "orders", *orderByOffice)
+	go os.kafkaProducer.StartProduce(os.Done, ordersTopic, *orderByOffice)
 
 	return &customer.CreateOrderResponse{}, err
 }
 
 func (os *OrderService) GetActualMenu(ctx context.Context, request *customer.GetActualMenuRequest) (*customer.GetActualMenuResponse, error) {
-	//menu, err := os.restaurantService.GetMenu(time.Now())
-	//if err != nil {
-	//	return nil, status.Error(codes.Internal, fmt.Sprintf("restaurant service: %v", err.Error()))
-	//}
 
 	return &customer.GetActualMenuResponse{}, nil
 }

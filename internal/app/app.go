@@ -5,13 +5,15 @@ import (
 	"github.com/joho/godotenv"
 	repository2 "github.com/tumbleweedd/mediasoft-intership/customer-service/internal/repository"
 	"github.com/tumbleweedd/mediasoft-intership/customer-service/internal/service"
-	"github.com/tumbleweedd/mediasoft-intership/customer-service/pkg/broker/kafka"
+	"github.com/tumbleweedd/mediasoft-intership/customer-service/pkg/broker/kafka/producer"
 	"gitlab.com/mediasoft-internship/final-task/contracts/pkg/contracts/customer"
 	"google.golang.org/grpc"
 	"log"
 	"net"
 	"os"
 )
+
+const broker = "192.168.0.109:9092"
 
 func Run() {
 
@@ -41,13 +43,7 @@ func Run() {
 
 	s := grpc.NewServer()
 
-	/*rabbitmqConn, err := broker.NewRabbitMQConn("guest", "guest", "localhost", "5672", "queue_name")
-	if err != nil {
-		log.Println("Failed to rabbitMQ conn: ", err)
-	}
-	defer rabbitmqConn.Close()*/
-
-	kafkaProducer, err := kafka.NewProducer("192.168.0.105:9092")
+	kafkaProducer, err := producer.NewProducer(broker)
 	if err != nil {
 		log.Fatalln("Failed to kafka conn: ", err)
 	}

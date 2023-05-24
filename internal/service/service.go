@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 	"github.com/tumbleweedd/mediasoft-intership/customer-service/internal/repository"
-	"github.com/tumbleweedd/mediasoft-intership/customer-service/pkg/broker/kafka"
+	"github.com/tumbleweedd/mediasoft-intership/customer-service/pkg/broker/kafka/producer"
 	"gitlab.com/mediasoft-internship/final-task/contracts/pkg/contracts/customer"
 )
 
@@ -29,11 +29,11 @@ type Service struct {
 	customer.UnsafeOfficeServiceServer
 	customer.UnsafeOrderServiceServer
 	customer.UnsafeUserServiceServer
-	kafkaProducer *kafka.Producer
+	kafkaProducer *producer.Producer
 	Done          chan struct{}
 }
 
-func NewService(r *repository.Repository, kafkaProducer *kafka.Producer, Done chan struct{}) *Service {
+func NewService(r *repository.Repository, kafkaProducer *producer.Producer, Done chan struct{}) *Service {
 	return &Service{
 		Office:        NewOfficeService(r.Office),
 		Order:         NewOrderService(r.Order, r.Office, kafkaProducer, Done),
