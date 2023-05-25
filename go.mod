@@ -3,18 +3,18 @@ module github.com/tumbleweedd/mediasoft-intership/customer-service
 go 1.19
 
 require (
+	github.com/Shopify/sarama v1.38.1
 	github.com/google/uuid v1.3.0
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.10.8
 	github.com/streadway/amqp v1.0.0
-	gitlab.com/mediasoft-internship/final-task/contracts v0.2.1
+	gitlab.com/mediasoft-internship/final-task/contracts v0.3.0
 	google.golang.org/grpc v1.54.0
 	google.golang.org/protobuf v1.30.0
 )
 
 require (
-	github.com/Shopify/sarama v1.38.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/eapache/go-resiliency v1.3.0 // indirect
 	github.com/eapache/go-xerial-snappy v0.0.0-20230111030713-bf00bc1b83b6 // indirect
@@ -22,6 +22,7 @@ require (
 	github.com/envoyproxy/protoc-gen-validate v0.10.1 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.15.2 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
