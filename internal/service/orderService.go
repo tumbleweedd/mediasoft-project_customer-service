@@ -66,6 +66,11 @@ func (os *OrderService) CreateOrder(ctx context.Context, request *customer.Creat
 }
 
 func (os *OrderService) GetActualMenu(ctx context.Context, request *customer.GetActualMenuRequest) (*customer.GetActualMenuResponse, error) {
+	/*now := time.Now()
+	actualMenu, err := os.restaurantService.GetMenu(now)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}*/
 
 	return &customer.GetActualMenuResponse{}, nil
 }
