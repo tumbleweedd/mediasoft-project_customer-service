@@ -6,6 +6,7 @@ import (
 	repository2 "github.com/tumbleweedd/mediasoft-intership/customer-service/internal/repository"
 	"github.com/tumbleweedd/mediasoft-intership/customer-service/internal/service"
 	"github.com/tumbleweedd/mediasoft-intership/customer-service/pkg/broker/kafka/producer"
+	"github.com/tumbleweedd/mediasoft-intership/customer-service/pkg/database/postgres"
 	"gitlab.com/mediasoft-internship/final-task/contracts/pkg/contracts/customer"
 	"google.golang.org/grpc"
 	"log"
@@ -21,7 +22,7 @@ func Run() {
 		log.Fatalf("Error getting env, %v", err)
 	}
 
-	db, err := repository2.NewPostgresDB(&repository2.Config{
+	db, err := postgres.NewPostgresDB(&postgres.Config{
 		PgHost:         os.Getenv("DB_HOST"),
 		PgPort:         os.Getenv("DB_PORT"),
 		PgUser:         os.Getenv("DB_USER"),

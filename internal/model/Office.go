@@ -6,9 +6,8 @@ import (
 )
 
 type Office struct {
-	Uuid    uuid.UUID `json:"uuid" db:"uuid"`
-	Name    string    `json:"name" db:"name"`
-	Address string    `json:"address" db:"address"`
-	//CompanyUuid uuid.UUID `json:"company_uuid" db:"company_uuid"`
+	Uuid      uuid.UUID `json:"uuid" db:"uuid"`
+	Name      string    `json:"name" db:"name"`
+	Address   string    `json:"address" db:"address"`
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 }

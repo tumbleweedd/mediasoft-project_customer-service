@@ -7,6 +7,8 @@ import (
 	"gitlab.com/mediasoft-internship/final-task/contracts/pkg/contracts/customer"
 )
 
+//go:generate mockgen -source=repository.go -destination=mocks/mock.go
+
 type Office interface {
 	CreateOffice(uuId uuid.UUID, office model2.Office) error
 	GetOfficesList() ([]*model2.Office, error)
