@@ -2,25 +2,27 @@ package service
 
 import (
 	"context"
+	"errors"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/tumbleweedd/mediasoft-intership/customer-service/internal/model"
 	mock_repository "github.com/tumbleweedd/mediasoft-intership/customer-service/internal/repository/mocks"
 	"gitlab.com/mediasoft-internship/final-task/contracts/pkg/contracts/customer"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"testing"
+	"time"
 )
 
 func TestOfficeService_CreateOffice(t *testing.T) {
-	type mockBehavior func(s *mock_repository.MockOffice, expectedUUID uuid.UUID, expectedOffice model.Office)
+	type mockBehavior func(s *mock_repository.MockOffice, req *customer.CreateOfficeRequest)
 
 	testTable := []struct {
 		name           string
 		req            *customer.CreateOfficeRequest
-		mockBehavior   mockBehavior
-		expectedUUID   uuid.UUID
 		expectedOffice model.Office
-		expectedError  error
+		mockBehavior   mockBehavior
+		wantError      bool
 		expectedResult *customer.CreateOfficeResponse
 	}{
 		{
@@ -29,33 +31,125 @@ func TestOfficeService_CreateOffice(t *testing.T) {
 				Name:    "Test name",
 				Address: "Test address",
 			},
-			mockBehavior: func(s *mock_repository.MockOffice, expectedUUID uuid.UUID, expectedOffice model.Office) {
-				s.EXPECT().CreateOffice(expectedUUID, expectedOffice).Return(nil)
+			mockBehavior: func(mockRepo *mock_repository.MockOffice, req *customer.CreateOfficeRequest) {
+				expOffice := model.Office{Name: req.Name, Address: req.Address}
+				mockRepo.EXPECT().CreateOffice(gomock.Any(), expOffice).Return(nil)
 			},
-			expectedUUID: uuid.New(),
-			expectedOffice: model.Office{
-				Uuid:    uuid.New(),
-				Name:    "Test name",
-				Address: "Test Address",
-			},
-			expectedError:  nil,
+			wantError:      false,
 			expectedResult: &customer.CreateOfficeResponse{},
+		},
+		{
+			name: "Error creating office",
+			req: &customer.CreateOfficeRequest{
+				Name:    "Test name",
+				Address: "Test address",
+			},
+			mockBehavior: func(mockRepo *mock_repository.MockOffice, req *customer.CreateOfficeRequest) {
+				expOffice := model.Office{Name: req.Name, Address: req.Address}
+				mockRepo.EXPECT().CreateOffice(gomock.Any(), expOffice).Return(errors.New("some error"))
+			},
+			wantError:      true,
+			expectedResult: nil,
 		},
 	}
 	for _, testCase := range testTable {
-		c := gomock.NewController(t)
-		defer c.Finish()
+		t.Run(testCase.name, func(t *testing.T) {
+			c := gomock.NewController(t)
+			defer c.Finish()
 
-		officeRepo := mock_repository.NewMockOffice(c)
-		service := NewOfficeService(officeRepo)
+			officeRepo := mock_repository.NewMockOffice(c)
+			service := NewOfficeService(officeRepo)
 
-		testCase.mockBehavior(officeRepo, testCase.expectedUUID, testCase.expectedOffice)
+			testCase.mockBehavior(officeRepo, testCase.req)
 
-		result, err := service.CreateOffice(context.Background(), testCase.req)
+			result, err := service.CreateOffice(context.Background(), testCase.req)
+			if testCase.wantError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, testCase.expectedResult, result)
+			}
+		})
+	}
+}
 
-		assert.Equal(t, testCase.expectedError, err)
-		assert.Equal(t, testCase.expectedResult, err)
+func TestOfficeService_GetOfficeList(t *testing.T) {
+	expectedOffices := []*model.Office{
+		{
+			Uuid:      uuid.New(),
+			Name:      "Office 1",
+			Address:   "Address 1",
+			CreatedAt: time.Now(),
+		},
+		{
+			Uuid:      uuid.New(),
+			Name:      "Office 2",
+			Address:   "Address 2",
+			CreatedAt: time.Now(),
+		},
+	}
 
-		officeRepo.
+	type mockBehavior func(mockRepo *mock_repository.MockOffice, expectedOffices []*model.Office)
+
+	testTable := []struct {
+		name            string
+		expectedOffices []*model.Office
+		mockBehavior    mockBehavior
+		wantError       bool
+		expectedResult  *customer.GetOfficeListResponse
+	}{
+		{
+			name:            "OK",
+			expectedOffices: expectedOffices,
+			mockBehavior: func(mockRepo *mock_repository.MockOffice, expectedOffices []*model.Office) {
+				mockRepo.EXPECT().GetOfficesList().Return(expectedOffices, nil)
+			},
+			wantError: false,
+			expectedResult: &customer.GetOfficeListResponse{
+				Result: []*customer.Office{
+					{
+						Uuid:      expectedOffices[0].Uuid.String(),
+						Name:      expectedOffices[0].Name,
+						Address:   expectedOffices[0].Address,
+						CreatedAt: timestamppb.New(expectedOffices[0].CreatedAt),
+					},
+					{
+						Uuid:      expectedOffices[1].Uuid.String(),
+						Name:      expectedOffices[1].Name,
+						Address:   expectedOffices[1].Address,
+						CreatedAt: timestamppb.New(expectedOffices[1].CreatedAt),
+					},
+				},
+			},
+		},
+		{
+			name:            "No offices",
+			expectedOffices: []*model.Office{},
+			mockBehavior: func(mockRepo *mock_repository.MockOffice, expectedOffices []*model.Office) {
+				mockRepo.EXPECT().GetOfficesList().Return(expectedOffices, nil)
+			},
+			wantError:      false,
+			expectedResult: &customer.GetOfficeListResponse{Result: []*customer.Office(nil)},
+		},
+	}
+
+	for _, testCase := range testTable {
+		t.Run(testCase.name, func(t *testing.T) {
+			c := gomock.NewController(t)
+			defer c.Finish()
+
+			officeRepo := mock_repository.NewMockOffice(c)
+			service := NewOfficeService(officeRepo)
+
+			testCase.mockBehavior(officeRepo, testCase.expectedOffices)
+
+			result, err := service.GetOfficeList(context.Background(), &customer.GetOfficeListRequest{})
+			if testCase.wantError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, testCase.expectedResult, result)
+			}
+		})
 	}
 }
