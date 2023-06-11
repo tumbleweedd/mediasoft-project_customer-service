@@ -2,6 +2,7 @@ version: '3'
 services:
   db:
     image: postgres
+    restart: always
     ports:
       - '5432:5432'
     environment:
@@ -9,4 +10,18 @@ services:
       POSTGRES_PASSWORD: mypassword
       POSTGRES_DB: mydatabase
     volumes:
-      - ./migrations:/migrations
+      - ./data:/var/lib/postgresql/data
+
+  flyway:
+    image: flyway/flyway
+    command:
+      - repair
+      - migrate
+    volumes:
+      - ./migrations:/flyway/sql
+      - ./flyway.conf:/flyway/conf/flyway.conf
+
+    depends_on:
+      - db
+    restart: on-failure
+

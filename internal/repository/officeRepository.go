@@ -35,7 +35,7 @@ func (or *OfficeRepository) GetOfficesList() ([]*model.Office, error) {
 }
 
 func (or *OfficeRepository) GetOffice(officeUuid uuid.UUID) (model.Office, error) {
-	const query = `select * from customer.offices where uuid=$1`
+	const query = `select * from offices where uuid=$1`
 
 	var office model.Office
 
