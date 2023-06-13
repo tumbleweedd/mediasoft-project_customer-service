@@ -1,4 +1,4 @@
-CREATE TABLE if not exists customer.offices
+CREATE TABLE if not exists offices
 (
     uuid      uuid primary key,
     name      varchar(50)  not null,
@@ -6,31 +6,31 @@ CREATE TABLE if not exists customer.offices
     created_at timestamp default now()
 );
 
-create table if not exists customer.users
+create table if not exists users
 (
     uuid        uuid primary key,
     name        varchar(50) not null,
     office_uuid uuid        not null
         constraint fk_offices_users
-            references customer.offices (uuid),
+            references offices (uuid),
     office_name varchar(20) not null,
     created_at  timestamp default now()
 );
 
-create table if not exists customer.orders
+create table if not exists orders
 (
     uuid uuid primary key,
     user_uuid  uuid not null
         constraint fk_users_orders
-            references customer.users (uuid)
+            references users (uuid)
 );
 
-create table if not exists customer.order_items
+create table if not exists order_items
 (
     id serial primary key ,
     count int not null ,
     product_uuid uuid not null ,
     order_uuid uuid not null
         constraint fk_order_items
-            references customer.orders(uuid)
+            references orders(uuid)
 );

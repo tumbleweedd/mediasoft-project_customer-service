@@ -82,6 +82,12 @@ func TestOfficeRepository_GetOffice(t *testing.T) {
 
 	officeRepo := NewOfficeRepository(db)
 
+	expectedTimeString := "2023-06-13T12:34:56Z"
+	expectedTime, _ := time.Parse(time.RFC3339, expectedTimeString)
+	expectedTime = expectedTime.In(time.FixedZone("", 0))
+
+	validUUID := uuid.New()
+
 	type args struct {
 		officeUUID uuid.UUID
 	}
@@ -95,26 +101,26 @@ func TestOfficeRepository_GetOffice(t *testing.T) {
 		{
 			name: "OK",
 			args: args{
-				officeUUID: uuid.New(),
+				officeUUID: validUUID,
 			},
 			expectedResult: model.Office{
-				Uuid:      uuid.New(),
+				Uuid:      validUUID,
 				Name:      "New Office",
 				Address:   "New Address",
-				CreatedAt: time.Now(),
+				CreatedAt: expectedTime,
 			},
 			wantErr: false,
 		},
 	}
+
 	for _, testCase := range testTable {
 		t.Run(testCase.name, func(t *testing.T) {
-			const createOfficeQuery = `insert into offices (uuid, name, address, created_at) values ($1, $2, $3, $4)`
+			// Здесь этого быть не должно. Вынести предварительное добавление данных в другое место
+			/*const createOfficeQuery = `insert into offices (uuid, name, address, created_at) values ($1, $2, $3, $4)`
 			_, err := officeRepo.db.Exec(createOfficeQuery,
 				testCase.expectedResult.Uuid, testCase.expectedResult.Name, testCase.expectedResult.Address, testCase.expectedResult.CreatedAt,
 			)
-			assert.NoError(t, err)
-
-			testCase.args.officeUUID = testCase.expectedResult.Uuid
+			assert.NoError(t, err)*/
 
 			office, err := officeRepo.GetOffice(testCase.args.officeUUID)
 			if testCase.wantErr {
@@ -122,6 +128,55 @@ func TestOfficeRepository_GetOffice(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 				assert.Equal(t, testCase.expectedResult, office)
+			}
+		})
+	}
+}
+
+func TestOfficeRepository_GetOfficesList(t *testing.T) {
+	db, err := connectToTestPostgresDB()
+	assert.NoError(t, err, "Failed to connect to database")
+
+	officeRepo := NewOfficeRepository(db)
+
+	validUUID := uuid.New()
+	expectedTimeString := "2023-06-13T12:34:56Z"
+	expectedTime, _ := time.Parse(time.RFC3339, expectedTimeString)
+	expectedTime = expectedTime.In(time.FixedZone("", 0))
+
+	var testTable = []struct {
+		name           string
+		expectedResult []*model.Office
+		wantErr        bool
+	}{
+		{
+			name: "OK",
+			expectedResult: []*model.Office{
+				{
+					Uuid:      validUUID,
+					Name:      "Test name 1",
+					Address:   "Test address 1",
+					CreatedAt: expectedTime,
+				},
+				{
+					Uuid:      validUUID,
+					Name:      "Test name 2",
+					Address:   "Test address 2",
+					CreatedAt: expectedTime,
+				},
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, testCase := range testTable {
+		t.Run(testCase.name, func(t *testing.T) {
+			offices, err := officeRepo.GetOfficesList()
+			if testCase.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, testCase.expectedResult, offices)
 			}
 		})
 	}
